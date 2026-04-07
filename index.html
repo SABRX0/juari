@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JUARI — Who's the Real One?</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;600;700;900&family=Archivo+Black&display=swap');
   *{margin:0;padding:0;box-sizing:border-box}
@@ -327,27 +328,12 @@
     </div>
   </div>
 
-  <!-- SIDE BETS -->
-  <div class="sidebets" id="sidebets">
-    <div class="sb-title">side bets</div>
-    <div id="sbItems"></div>
-  </div>
-
   <!-- LEADERBOARD -->
   <div class="leaderboard" id="leaderboard">
     <div class="lb-title">live standings</div>
     <div id="lbRows"></div>
   </div>
 
-  <!-- STATS -->
-  <div class="stats-section" id="statsSection">
-    <div class="stats-title">battle stats</div>
-    <div class="stats-grid">
-      <div class="stat-box"><div class="stat-val" id="statLeadChanges">0</div><div class="stat-label">lead changes</div></div>
-      <div class="stat-box"><div class="stat-val" id="statClosest">--</div><div class="stat-label">closest gap</div></div>
-      <div class="stat-box"><div class="stat-val" id="statBigSwing">--</div><div class="stat-label">biggest swing</div></div>
-    </div>
-  </div>
 
   <!-- LOG -->
   <div class="log-section">
@@ -513,11 +499,8 @@ function lockPlayer(i){
     $('leaderboard').classList.add('active');
     $('chartSection').classList.add('active');
     $('spreadSection').classList.add('active');
-    $('statsSection').classList.add('active');
-    $('sidebets').classList.add('active');
-    S.leadTimeStart=Date.now();
+        S.leadTimeStart=Date.now();
     addLog('ALL PLAYERS LOCKED. THE RACE IS ON.','highlight');
-    generateSideBets();
   }
   saveState();
 }
@@ -574,8 +557,8 @@ function updateCountdown(){
 // VOLUME
 async function fetchVolume(){
   // >>> REPLACE WITH YOUR API <<<
-  if(!S.liveVolume)S.liveVolume=50_000_000+Math.random()*50_000_000;
-  const drift=(Math.random()-0.48)*2_000_000;
+  if(!S.liveVolume)S.liveVolume=2500+Math.random()*3000;
+  const drift=(Math.random()-0.48)*300;
   S.liveVolume=Math.max(0,S.liveVolume+drift);
   return S.liveVolume;
 }
@@ -849,7 +832,7 @@ function loadState(){
     const raw=localStorage.getItem('juari');if(!raw)return;
     const sv=JSON.parse(raw);
     if(sv.players){sv.players.forEach((p,i)=>{if(p.locked){S.players[i]=p;$('name'+i).textContent=p.name;$('pred'+i).textContent=fmtMoney(p.prediction);$('card'+i).classList.add('locked')}});
-      if(sv.players.every(p=>p.locked)){$('leaderboard').classList.add('active');$('chartSection').classList.add('active');$('spreadSection').classList.add('active');$('statsSection').classList.add('active');$('sidebets').classList.add('active');$('statusText').textContent='all locked in — tracking live volume';S.leadTimeStart=Date.now()}}
+      if(sv.players.every(p=>p.locked)){$('leaderboard').classList.add('active');$('chartSection').classList.add('active');$('spreadSection').classList.add('active');$('statsSection').classList.add('active');$('statusText').textContent='all locked in — tracking live volume';S.leadTimeStart=Date.now()}}
     if(sv.lastLeader!==undefined)S.lastLeader=sv.lastLeader;
     if(sv.leadChanges)S.leadChanges=sv.leadChanges;
     if(sv.tauntsLeft){S.tauntsLeft=sv.tauntsLeft;S.tauntsLeft.forEach((t,i)=>{$('taunt'+i).textContent=t>0?`SEND TAUNT (${t})`:'NO TAUNTS LEFT';if(t<=0)$('taunt'+i).classList.add('used')})}
@@ -872,11 +855,8 @@ function initPlayers(){
   $('leaderboard').classList.add('active');
   $('chartSection').classList.add('active');
   $('spreadSection').classList.add('active');
-  $('statsSection').classList.add('active');
-  $('sidebets').classList.add('active');
-  $('statusText').textContent='all locked in — tracking live volume';
+    $('statusText').textContent='all locked in — tracking live volume';
   S.leadTimeStart=Date.now();
-  generateSideBets();
 }
 
 // INIT
@@ -893,6 +873,50 @@ addLog('Deadline: Apr 8, 2026 — 7:00 PM IST','');
 
 // click to init audio
 document.addEventListener('click',()=>initAudio(),{once:true});
+
+// ===== SUPABASE REALTIME =====
+const supa = window.supabase.createClient(
+  'https://cgklvqhoctcriikckcjt.supabase.co',
+  'sb_publishable_upu5UiUbXGtrwSapWTvqzw_lv5f2P9K'
+);
+
+const channel = supa.channel('juari-room', {
+  config: { broadcast: { self: false } }
+});
+
+// Listen for taunts from others
+channel.on('broadcast', { event: 'taunt' }, ({ payload }) => {
+  const { playerIdx, name, taunt, color } = payload;
+  showToast(name, taunt, color);
+  addLog(`<b>${esc(name)}</b>: "${esc(taunt)}"`, 'taunt');
+  sfxTaunt();
+});
+
+channel.subscribe();
+
+// Override sendTaunt to broadcast
+const _origSendTaunt = sendTaunt;
+sendTaunt = function(i) {
+  initAudio();
+  if(S.tauntsLeft[i]<=0) return;
+  S.tauntsLeft[i]--;
+  const btn=$('taunt'+i);
+  btn.textContent=S.tauntsLeft[i]>0?`SEND TAUNT (${S.tauntsLeft[i]})`:'NO TAUNTS LEFT';
+  if(S.tauntsLeft[i]<=0) btn.classList.add('used');
+  const taunt=pick(TAUNTS);
+  const name=S.players[i].name;
+  // Show locally
+  showToast(name, taunt, COLORS[i]);
+  addLog(`<b>${name}</b>: "${taunt}"`, 'taunt');
+  sfxTaunt();
+  // Broadcast to others
+  channel.send({
+    type: 'broadcast',
+    event: 'taunt',
+    payload: { playerIdx: i, name, taunt, color: COLORS[i] }
+  });
+  saveState();
+};
 </script>
 </body>
 </html>
