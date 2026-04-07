@@ -211,9 +211,35 @@
   .reset-wrap{text-align:center;margin-top:16px}
   .reset-btn{background:transparent;border:1px solid var(--border);color:var(--dim);padding:6px 16px;border-radius:8px;cursor:pointer;font-size:.65rem;transition:all .2s;font-family:'Space Mono',monospace;letter-spacing:1px}
   .reset-btn:hover{border-color:var(--red);color:var(--red)}
+
+  /* CLAIM POPUP */
+  .claim-overlay{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.92);display:flex;justify-content:center;align-items:center;flex-direction:column;backdrop-filter:blur(12px)}
+  .claim-overlay.hidden{display:none}
+  .claim-title{font-family:'Archivo Black',sans-serif;font-size:2.5rem;background:linear-gradient(135deg,var(--gold),var(--orange),var(--red));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+  .claim-sub{font-family:'Space Mono',monospace;font-size:.8rem;color:var(--dim);margin-bottom:28px;letter-spacing:2px}
+  .claim-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:320px;width:100%}
+  .claim-btn{padding:16px 24px;border-radius:12px;border:2px solid var(--border);background:var(--card);color:#fff;font-family:'Archivo Black',sans-serif;font-size:1.1rem;cursor:pointer;transition:all .2s;text-align:center}
+  .claim-btn:hover{transform:translateY(-2px)}
+  .claim-btn.c0{border-color:rgba(0,240,255,.3)}.claim-btn.c0:hover{border-color:var(--p1);box-shadow:0 0 20px rgba(0,240,255,.2)}
+  .claim-btn.c1{border-color:rgba(255,34,85,.3)}.claim-btn.c1:hover{border-color:var(--p2);box-shadow:0 0 20px rgba(255,34,85,.2)}
+  .claim-btn.c2{border-color:rgba(0,255,136,.3)}.claim-btn.c2:hover{border-color:var(--p3);box-shadow:0 0 20px rgba(0,255,136,.2)}
+  .claim-btn.c3{border-color:rgba(255,153,0,.3)}.claim-btn.c3:hover{border-color:var(--p4);box-shadow:0 0 20px rgba(255,153,0,.2)}
+  .player-card.mine{box-shadow:inset 0 0 20px rgba(255,255,255,.03)}.player-card.mine .p-name::after{content:' (you)';font-size:.65rem;color:var(--dim);font-weight:400}
 </style>
 </head>
 <body>
+<!-- CLAIM POPUP -->
+<div class="claim-overlay" id="claimOverlay">
+  <div class="claim-title">JUARI</div>
+  <div class="claim-sub">who are you?</div>
+  <div class="claim-btns">
+    <button class="claim-btn c0" onclick="claimPlayer(0)">Poorv</button>
+    <button class="claim-btn c1" onclick="claimPlayer(1)">Sabr</button>
+    <button class="claim-btn c2" onclick="claimPlayer(2)">Shreyash</button>
+    <button class="claim-btn c3" onclick="claimPlayer(3)">Arjun</button>
+  </div>
+</div>
+
 <div class="bg-particles"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
 <div class="drama-vignette"></div>
 <div class="lead-flash" id="leadFlash"></div>
@@ -870,6 +896,37 @@ setInterval(()=>{if(S.dramaMode&&!S.ended)updateVolume()},2000);
 addLog('JUARI initialized. $200 on the line.','hype');
 addLog('Poorv: $2.5K | Sabr: $5K | Shreyash: $4K | Arjun: $2K','hype');
 addLog('Deadline: Apr 8, 2026 — 7:00 PM IST','');
+
+// ===== CLAIM IDENTITY =====
+let myPlayer = -1;
+
+function claimPlayer(i) {
+  myPlayer = i;
+  sessionStorage.setItem('juari_me', i);
+  $('claimOverlay').classList.add('hidden');
+  applyIdentity();
+  initAudio();
+}
+
+function applyIdentity() {
+  if (myPlayer < 0) return;
+  // highlight my card
+  $('card' + myPlayer).classList.add('mine');
+  // disable taunt buttons for others, only I can taunt as myself
+  for (let i = 0; i < N; i++) {
+    if (i !== myPlayer) {
+      $('taunt' + i).style.display = 'none';
+    }
+  }
+}
+
+// check sessionStorage on load
+const savedMe = sessionStorage.getItem('juari_me');
+if (savedMe !== null) {
+  myPlayer = parseInt(savedMe);
+  $('claimOverlay').classList.add('hidden');
+  applyIdentity();
+}
 
 // click to init audio
 document.addEventListener('click',()=>initAudio(),{once:true});
