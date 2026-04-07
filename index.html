@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JUARI — Who's the Real One?</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;600;700;900&family=Archivo+Black&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#06060c;--card:#0e0e18;--border:#1a1a2e;--text:#e0e0e0;--dim:#555;
+    --accent:#00f0ff;--green:#00ff88;--red:#ff2255;--orange:#ff9900;
+    --purple:#a855f7;--gold:#ffd700;--pink:#ff3388;
+    --p1:#00f0ff;--p2:#ff2255;--p3:#00ff88;--p4:#ff9900;
+  }
+  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+  .bg-particles{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .bg-particles .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.15;animation:orbFloat 20s ease-in-out infinite alternate}
+  .orb:nth-child(1){width:400px;height:400px;background:var(--purple);top:-100px;left:-100px}
+  .orb:nth-child(2){width:300px;height:300px;background:var(--accent);bottom:-50px;right:-50px;animation-delay:-7s}
+  .orb:nth-child(3){width:250px;height:250px;background:var(--pink);top:40%;left:60%;animation-delay:-14s}
+  @keyframes orbFloat{0%{transform:translate(0,0) scale(1)}33%{transform:translate(50px,-30px) scale(1.1)}66%{transform:translate(-30px,50px) scale(.9)}100%{transform:translate(20px,-20px) scale(1.05)}}
+  .container{position:relative;z-index:1;max-width:920px;margin:0 auto;padding:24px 16px}
+
+  /* HEADER */
+  .header{text-align:center;margin-bottom:12px;animation:fadeInDown .6s ease}
+  @keyframes fadeInDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}
+  .header h1{font-family:'Archivo Black',sans-serif;font-size:4rem;font-weight:900;background:linear-gradient(135deg,var(--gold),var(--orange),var(--red),var(--purple));background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:titleShift 4s ease infinite;letter-spacing:8px;line-height:1}
+  @keyframes titleShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+  .header .tagline{color:var(--dim);font-size:.8rem;margin-top:6px;font-family:'Space Mono',monospace;letter-spacing:4px;text-transform:uppercase}
+  .pot-section{text-align:center;margin-bottom:20px;animation:fadeInDown .8s ease}
+  .pot-badge{display:inline-block;background:linear-gradient(135deg,var(--gold),#ff8c00,var(--red));background-size:200% 200%;animation:potPulse 2s ease infinite;color:#000;font-weight:900;font-size:1.3rem;padding:10px 32px;border-radius:24px;letter-spacing:2px;font-family:'Archivo Black',sans-serif;box-shadow:0 0 30px rgba(255,215,0,.25)}
+  @keyframes potPulse{0%,100%{background-position:0% 50%;box-shadow:0 0 30px rgba(255,215,0,.25)}50%{background-position:100% 50%;box-shadow:0 0 50px rgba(255,215,0,.4)}}
+
+  /* HYPE */
+  .hype-bar{text-align:center;margin-bottom:20px;font-family:'Space Mono',monospace;font-size:.8rem;height:24px;overflow:hidden;position:relative}
+  .hype-msg{position:absolute;width:100%;text-align:center;animation:hypeSlide 4s ease infinite;color:var(--gold);opacity:.8}
+  @keyframes hypeSlide{0%{transform:translateY(100%);opacity:0}15%,85%{transform:translateY(0);opacity:.8}100%{transform:translateY(-100%);opacity:0}}
+
+  /* STATUS */
+  .status-bar{text-align:center;margin-bottom:20px;font-size:.75rem;color:var(--dim);font-family:'Space Mono',monospace}
+  .pulse{display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;margin-right:6px;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,255,136,.4)}50%{opacity:.7;box-shadow:0 0 0 8px rgba(0,255,136,0)}}
+
+  /* COUNTDOWN */
+  .countdown-wrap{text-align:center;margin-bottom:24px;transition:all .5s}
+  .countdown-label{font-size:.65rem;color:var(--dim);text-transform:uppercase;letter-spacing:4px;margin-bottom:8px;font-family:'Space Mono',monospace}
+  .countdown{display:flex;justify-content:center;gap:10px}
+  .cd-block{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 18px;min-width:72px;text-align:center;position:relative;overflow:hidden;transition:all .3s}
+  .cd-block::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent);pointer-events:none}
+  .cd-block .num{font-family:'Archivo Black',sans-serif;font-size:2rem;color:var(--accent);transition:all .3s}
+  .cd-block .lbl{font-size:.55rem;color:var(--dim);text-transform:uppercase;letter-spacing:2px;margin-top:2px;font-family:'Space Mono',monospace}
+  .countdown.urgent .cd-block .num{color:var(--red)}
+  .countdown.urgent .cd-block{border-color:rgba(255,34,85,.3)}
+  /* DRAMA MODE */
+  .drama .countdown-wrap{transform:scale(1.15)}
+  .drama .cd-block .num{font-size:2.6rem}
+  .drama .cd-block{background:rgba(255,34,85,.05);border-color:rgba(255,34,85,.4);animation:dramaPulse 1s ease infinite}
+  @keyframes dramaPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,34,85,0)}50%{box-shadow:0 0 20px rgba(255,34,85,.15)}}
+  .drama .bg-particles .orb{opacity:.25;filter:blur(60px)}
+  .drama-vignette{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(255,34,85,.08) 100%);transition:opacity 1s}
+  .drama .drama-vignette{opacity:1}
+
+  /* VOLUME */
+  .volume-display{text-align:center;margin-bottom:28px;padding:24px;background:var(--card);border:1px solid var(--border);border-radius:16px;position:relative;overflow:hidden}
+  .volume-display::before{content:'';position:absolute;inset:-2px;border-radius:18px;padding:2px;background:conic-gradient(var(--accent),var(--purple),var(--pink),var(--gold),var(--accent));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:borderRotate 3s linear infinite}
+  @keyframes borderRotate{to{transform:rotate(360deg)}}
+  .vol-label{font-size:.65rem;color:var(--dim);text-transform:uppercase;letter-spacing:4px;margin-bottom:6px;font-family:'Space Mono',monospace}
+  .vol-number{font-family:'Archivo Black',sans-serif;font-size:3.2rem;color:#fff;text-shadow:0 0 40px rgba(0,240,255,.3),0 0 80px rgba(0,240,255,.1);transition:transform .2s}
+  .vol-number.bump{transform:scale(1.05)}
+  .vol-direction{font-size:.9rem;margin-top:4px;font-family:'Space Mono',monospace;transition:color .3s}
+  .vol-direction.up{color:var(--green)}
+  .vol-direction.down{color:var(--red)}
+  .vol-sub{font-size:.7rem;color:var(--dim);margin-top:6px;font-family:'Space Mono',monospace}
+
+  /* SPARKLINE */
+  .chart-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:20px;display:none}
+  .chart-section.active{display:block}
+  .chart-title{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--dim);text-transform:uppercase;letter-spacing:4px;margin-bottom:10px;text-align:center}
+  #sparkline{width:100%;height:160px;border-radius:8px}
+
+  /* SPREAD */
+  .spread-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:20px;display:none}
+  .spread-section.active{display:block}
+  .spread-title{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--dim);text-transform:uppercase;letter-spacing:4px;margin-bottom:12px;text-align:center}
+  .spread-track{position:relative;height:40px;margin:0 20px;background:rgba(255,255,255,.02);border-radius:8px;overflow:visible}
+  .spread-marker{position:absolute;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;transition:left .8s cubic-bezier(.25,.1,.25,1);z-index:2;box-shadow:0 0 8px currentColor}
+  .spread-marker.sm1{background:var(--p1);color:var(--p1)}.spread-marker.sm2{background:var(--p2);color:var(--p2)}.spread-marker.sm3{background:var(--p3);color:var(--p3)}.spread-marker.sm4{background:var(--p4);color:var(--p4)}
+  .spread-label{position:absolute;top:-18px;transform:translateX(-50%);font-size:.55rem;font-family:'Space Mono',monospace;color:var(--dim);white-space:nowrap}
+  .spread-vol{position:absolute;top:50%;transform:translate(-50%,-50%);width:3px;height:32px;background:var(--gold);z-index:3;transition:left .8s;box-shadow:0 0 10px rgba(255,215,0,.4)}
+  .spread-vol-label{position:absolute;bottom:-18px;transform:translateX(-50%);font-size:.55rem;color:var(--gold);font-family:'Space Mono',monospace;white-space:nowrap}
+
+  /* PLAYER CARDS */
+  .players-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
+  @media(max-width:600px){.players-grid{grid-template-columns:1fr}.header h1{font-size:2.8rem}.vol-number{font-size:2.2rem}}
+  .player-card{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:16px;position:relative;transition:all .4s ease;overflow:hidden;animation:cardIn .5s ease backwards}
+  .player-card:nth-child(1){animation-delay:.1s}.player-card:nth-child(2){animation-delay:.2s}.player-card:nth-child(3){animation-delay:.3s}.player-card:nth-child(4){animation-delay:.4s}
+  @keyframes cardIn{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .player-card.leader{border-color:var(--gold)!important;box-shadow:0 0 30px rgba(255,215,0,.2),inset 0 0 30px rgba(255,215,0,.03)}
+  .player-card.leader .p-rank{display:block}
+  .p-rank{display:none;position:absolute;top:-1px;right:-1px;background:linear-gradient(135deg,var(--gold),#ff8c00);color:#000;font-weight:900;font-size:.6rem;letter-spacing:2px;padding:4px 14px;border-radius:0 14px 0 10px;font-family:'Space Mono',monospace}
+  .player-card.p1{border-color:rgba(0,240,255,.2)}.player-card.p2{border-color:rgba(255,34,85,.2)}.player-card.p3{border-color:rgba(0,255,136,.2)}.player-card.p4{border-color:rgba(255,153,0,.2)}
+  .player-card.locked .card-setup{display:none}.player-card.locked .card-live{display:flex}
+  .player-card .card-setup{display:block}.player-card .card-live{display:none;flex-direction:column}
+  .p-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .p-avatar{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1rem;color:#000;font-family:'Archivo Black',sans-serif}
+  .p1 .p-avatar{background:linear-gradient(135deg,var(--p1),#0088cc)}.p2 .p-avatar{background:linear-gradient(135deg,var(--p2),#cc0044)}.p3 .p-avatar{background:linear-gradient(135deg,var(--p3),#00aa55)}.p4 .p-avatar{background:linear-gradient(135deg,var(--p4),#cc7700)}
+  .p-name{font-weight:700;font-size:1rem}
+  .p-bet{font-size:.6rem;color:var(--dim);font-family:'Space Mono',monospace}
+  .setup-row{display:flex;gap:8px;margin-bottom:8px}
+  .setup-row input{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:#fff;font-size:.85rem;font-family:'Inter',sans-serif;outline:none;transition:all .2s}
+  .setup-row input:focus{border-color:var(--accent);box-shadow:0 0 15px rgba(0,240,255,.1)}
+  .setup-row input::placeholder{color:#333}
+  .lock-btn{width:100%;background:linear-gradient(135deg,var(--accent),var(--purple));border:none;border-radius:10px;padding:10px 16px;color:#fff;font-weight:700;font-size:.85rem;cursor:pointer;transition:all .2s;letter-spacing:2px;font-family:'Space Mono',monospace}
+  .lock-btn:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,240,255,.3)}
+  .lock-btn:active{transform:scale(.98)}
+  .prediction-val{font-family:'Archivo Black',sans-serif;font-size:1.5rem;margin-bottom:6px}
+  .p1 .prediction-val{color:var(--p1)}.p2 .prediction-val{color:var(--p2)}.p3 .prediction-val{color:var(--p3)}.p4 .prediction-val{color:var(--p4)}
+  .momentum{font-size:.65rem;font-family:'Space Mono',monospace;margin-bottom:8px;transition:color .3s}
+  .momentum.toward{color:var(--green)}.momentum.away{color:var(--red)}.momentum.flat{color:var(--dim)}
+  .dist-bar-wrap{background:rgba(255,255,255,.04);border-radius:8px;height:10px;overflow:hidden;margin-bottom:6px}
+  .dist-bar{height:100%;border-radius:8px;transition:width .8s cubic-bezier(.25,.1,.25,1);position:relative}
+  .dist-bar::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2));border-radius:8px}
+  .p1 .dist-bar{background:linear-gradient(90deg,var(--p1),#0088cc)}.p2 .dist-bar{background:linear-gradient(90deg,var(--p2),#cc0044)}.p3 .dist-bar{background:linear-gradient(90deg,var(--p3),#00aa55)}.p4 .dist-bar{background:linear-gradient(90deg,var(--p4),#cc7700)}
+  .dist-text{font-family:'Space Mono',monospace;font-size:.7rem;color:var(--dim);display:flex;justify-content:space-between;margin-bottom:6px}
+  .dist-rank{font-weight:700;padding:1px 6px;border-radius:4px;font-size:.6rem}
+  .dist-rank.r1{background:var(--gold);color:#000}.dist-rank.r2{background:rgba(255,255,255,.1);color:#aaa}.dist-rank.r3{background:rgba(255,255,255,.06);color:#666}.dist-rank.r4{background:rgba(255,255,255,.03);color:#444}
+  .taunt-btn{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--dim);font-size:.6rem;cursor:pointer;font-family:'Space Mono',monospace;transition:all .2s}
+  .taunt-btn:hover{border-color:var(--pink);color:var(--pink)}
+  .taunt-btn.used{opacity:.3;pointer-events:none}
+
+  /* LEAD FLASH */
+  .lead-flash{position:fixed;inset:0;z-index:100;pointer-events:none;opacity:0;transition:opacity .15s}
+  .lead-flash.fire{opacity:1;background:radial-gradient(ellipse at center,rgba(255,215,0,.12),transparent 70%);animation:flashOut .8s ease forwards}
+  @keyframes flashOut{to{opacity:0}}
+
+  /* TOAST */
+  .toast-container{position:fixed;top:20px;right:20px;z-index:500;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+  .toast{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-family:'Space Mono',monospace;font-size:.75rem;animation:toastIn .4s ease,toastOut .4s ease 3s forwards;box-shadow:0 4px 20px rgba(0,0,0,.5);max-width:320px;pointer-events:auto}
+  .toast .toast-from{font-weight:700;margin-bottom:2px;font-size:.65rem;text-transform:uppercase;letter-spacing:1px}
+  @keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+  @keyframes toastOut{to{opacity:0;transform:translateY(-20px)}}
+
+  /* LEADERBOARD */
+  .leaderboard{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:20px;display:none}
+  .leaderboard.active{display:block}
+  .lb-title{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--dim);text-transform:uppercase;letter-spacing:4px;margin-bottom:12px;text-align:center}
+  .lb-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;margin-bottom:4px;transition:all .4s ease;font-family:'Space Mono',monospace;font-size:.8rem}
+  .lb-row:first-child{background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.15)}
+  .lb-pos{font-weight:900;min-width:24px;text-align:center;font-family:'Archivo Black',sans-serif}
+  .lb-pos.g{color:var(--gold)}
+  .lb-name{flex:1;font-weight:600}
+  .lb-dist{color:var(--dim);font-size:.7rem}
+  .lb-streak{font-size:.6rem;color:var(--dim);font-family:'Space Mono',monospace}
+  .lb-emoji{font-size:1.2rem}
+
+  /* STATS */
+  .stats-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:20px;display:none}
+  .stats-section.active{display:block}
+  .stats-title{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--dim);text-transform:uppercase;letter-spacing:4px;margin-bottom:12px;text-align:center}
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .stat-box{text-align:center;padding:10px;background:rgba(255,255,255,.02);border-radius:8px}
+  .stat-val{font-family:'Archivo Black',sans-serif;font-size:1.3rem;color:var(--accent)}
+  .stat-label{font-size:.55rem;color:var(--dim);text-transform:uppercase;letter-spacing:2px;margin-top:2px;font-family:'Space Mono',monospace}
+
+  /* SIDE BETS */
+  .sidebets{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:20px;display:none}
+  .sidebets.active{display:block}
+  .sb-title{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--dim);text-transform:uppercase;letter-spacing:4px;margin-bottom:12px;text-align:center}
+  .sb-item{display:flex;align-items:center;justify-content:space-between;padding:10px;background:rgba(255,255,255,.02);border-radius:8px;margin-bottom:6px;font-size:.75rem;font-family:'Space Mono',monospace}
+  .sb-q{flex:1;color:var(--text)}
+  .sb-votes{display:flex;gap:6px}
+  .sb-vote{padding:4px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;font-size:.65rem;font-family:'Space Mono',monospace;transition:all .2s}
+  .sb-vote:hover{border-color:var(--accent);color:var(--accent)}
+  .sb-vote.voted{background:var(--accent);color:#000;border-color:var(--accent);pointer-events:none}
+  .sb-result{font-size:.65rem;color:var(--gold);min-width:60px;text-align:right}
+
+  /* LOG */
+  .log-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+  .log-title{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--dim);text-transform:uppercase;letter-spacing:4px;margin-bottom:10px}
+  .log-entries{max-height:180px;overflow-y:auto;font-size:.72rem;font-family:'Space Mono',monospace}
+  .log-entries::-webkit-scrollbar{width:3px}.log-entries::-webkit-scrollbar-track{background:transparent}.log-entries::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+  .log-entry{padding:5px 0;border-bottom:1px solid rgba(255,255,255,.02);color:var(--dim);animation:logIn .3s ease}
+  @keyframes logIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+  .log-entry .time{color:#333;margin-right:8px}
+  .log-entry.highlight{color:var(--gold)}.log-entry.hype{color:var(--accent)}.log-entry.danger{color:var(--red)}.log-entry.taunt{color:var(--pink)}
+
+  /* WINNER */
+  .winner-overlay{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.92);justify-content:center;align-items:center;flex-direction:column;backdrop-filter:blur(10px)}
+  .winner-overlay.show{display:flex}
+  .crown{font-size:4rem;margin-bottom:12px;animation:crownBounce 1s ease infinite}
+  @keyframes crownBounce{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-10px) rotate(-5deg)}75%{transform:translateY(-10px) rotate(5deg)}}
+  .winner-label{font-family:'Space Mono',monospace;font-size:.9rem;color:var(--dim);text-transform:uppercase;letter-spacing:6px;margin-bottom:8px}
+  .winner-name{font-family:'Archivo Black',sans-serif;font-size:4rem;background:linear-gradient(135deg,var(--gold),#ff8c00,var(--red));background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:titleShift 2s ease infinite;margin-bottom:8px;line-height:1.1}
+  .winner-pred{font-family:'Space Mono',monospace;font-size:.85rem;color:var(--dim);margin-bottom:6px}
+  .winner-amount{font-family:'Archivo Black',sans-serif;font-size:2rem;color:var(--gold);margin-bottom:20px;text-shadow:0 0 30px rgba(255,215,0,.4)}
+  .winner-stats{font-family:'Space Mono',monospace;font-size:.7rem;color:var(--dim);margin-bottom:20px;text-align:center;line-height:1.8}
+  .winner-btns{display:flex;gap:10px}
+  .winner-btn{background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);padding:10px 28px;border-radius:10px;cursor:pointer;font-size:.8rem;transition:all .2s;font-family:'Space Mono',monospace;letter-spacing:2px}
+  .winner-btn:hover{border-color:#fff;color:#fff}
+  .winner-btn.share{border-color:var(--accent);color:var(--accent)}
+  .winner-btn.share:hover{background:var(--accent);color:#000}
+
+  /* SHARE CARD */
+  #shareCanvas{display:none}
+
+  #confetti{position:fixed;inset:0;z-index:1000;pointer-events:none}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px) rotate(-1deg)}40%{transform:translateX(4px) rotate(1deg)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+  .shake{animation:shake .4s ease}
+  .reset-wrap{text-align:center;margin-top:16px}
+  .reset-btn{background:transparent;border:1px solid var(--border);color:var(--dim);padding:6px 16px;border-radius:8px;cursor:pointer;font-size:.65rem;transition:all .2s;font-family:'Space Mono',monospace;letter-spacing:1px}
+  .reset-btn:hover{border-color:var(--red);color:var(--red)}
+</style>
+</head>
+<body>
+<div class="bg-particles"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
+<div class="drama-vignette"></div>
+<div class="lead-flash" id="leadFlash"></div>
+<div class="toast-container" id="toasts"></div>
+<canvas id="confetti"></canvas>
+<canvas id="shareCanvas"></canvas>
+
+<div class="container">
+  <div class="header">
+    <h1>JUARI</h1>
+    <div class="tagline">who's the real one?</div>
+  </div>
+  <div class="pot-section"><div class="pot-badge">$200 ON THE LINE</div></div>
+  <div class="hype-bar"><div class="hype-msg" id="hypeMsg">lock in your predictions...</div></div>
+  <div class="status-bar"><span class="pulse"></span><span id="statusText">waiting for players to lock in...</span></div>
+
+  <div class="countdown-wrap">
+    <div class="countdown-label">deadline</div>
+    <div class="countdown" id="cdWrap">
+      <div class="cd-block"><div class="num" id="cdH">--</div><div class="lbl">hours</div></div>
+      <div class="cd-block"><div class="num" id="cdM">--</div><div class="lbl">mins</div></div>
+      <div class="cd-block"><div class="num" id="cdS">--</div><div class="lbl">secs</div></div>
+    </div>
+  </div>
+
+  <div class="volume-display">
+    <div class="vol-label">polymarket live volume</div>
+    <div class="vol-number" id="liveVol">$--</div>
+    <div class="vol-direction" id="volDir"></div>
+    <div class="vol-sub" id="volSub">connecting...</div>
+  </div>
+
+  <!-- SPARKLINE -->
+  <div class="chart-section" id="chartSection">
+    <div class="chart-title">volume trend</div>
+    <canvas id="sparkline"></canvas>
+  </div>
+
+  <!-- SPREAD -->
+  <div class="spread-section" id="spreadSection">
+    <div class="spread-title">prediction spread</div>
+    <div class="spread-track" id="spreadTrack">
+      <div class="spread-vol" id="spreadVol"><span class="spread-vol-label" id="spreadVolLabel">VOL</span></div>
+      <div class="spread-marker sm1" id="sm0"><span class="spread-label" id="sl0"></span></div>
+      <div class="spread-marker sm2" id="sm1"><span class="spread-label" id="sl1"></span></div>
+      <div class="spread-marker sm3" id="sm2"><span class="spread-label" id="sl2"></span></div>
+      <div class="spread-marker sm4" id="sm3"><span class="spread-label" id="sl3"></span></div>
+    </div>
+  </div>
+
+  <!-- PLAYER CARDS -->
+  <div class="players-grid" id="playersGrid">
+    <div class="player-card p1" id="card0">
+      <span class="p-rank">CLOSEST</span>
+      <div class="p-header"><div class="p-avatar">1</div><div><div class="p-name" id="name0">Player 1</div><div class="p-bet">$50 buy-in</div></div></div>
+      <div class="card-setup">
+        <div class="setup-row"><input type="text" id="nameIn0" placeholder="Name"><input type="text" id="predIn0" placeholder="Your volume call ($)"></div>
+        <button class="lock-btn" onclick="lockPlayer(0)">LOCK IT IN</button>
+      </div>
+      <div class="card-live">
+        <div class="prediction-val" id="pred0">--</div>
+        <div class="momentum" id="mom0"></div>
+        <div class="dist-bar-wrap"><div class="dist-bar" id="bar0" style="width:0%"></div></div>
+        <div class="dist-text"><span id="dist0">--</span><span class="dist-rank" id="rank0">--</span></div>
+        <button class="taunt-btn" id="taunt0" onclick="sendTaunt(0)">SEND TAUNT (3)</button>
+      </div>
+    </div>
+    <div class="player-card p2" id="card1">
+      <span class="p-rank">CLOSEST</span>
+      <div class="p-header"><div class="p-avatar">2</div><div><div class="p-name" id="name1">Player 2</div><div class="p-bet">$50 buy-in</div></div></div>
+      <div class="card-setup">
+        <div class="setup-row"><input type="text" id="nameIn1" placeholder="Name"><input type="text" id="predIn1" placeholder="Your volume call ($)"></div>
+        <button class="lock-btn" onclick="lockPlayer(1)">LOCK IT IN</button>
+      </div>
+      <div class="card-live">
+        <div class="prediction-val" id="pred1">--</div>
+        <div class="momentum" id="mom1"></div>
+        <div class="dist-bar-wrap"><div class="dist-bar" id="bar1" style="width:0%"></div></div>
+        <div class="dist-text"><span id="dist1">--</span><span class="dist-rank" id="rank1">--</span></div>
+        <button class="taunt-btn" id="taunt1" onclick="sendTaunt(1)">SEND TAUNT (3)</button>
+      </div>
+    </div>
+    <div class="player-card p3" id="card2">
+      <span class="p-rank">CLOSEST</span>
+      <div class="p-header"><div class="p-avatar">3</div><div><div class="p-name" id="name2">Player 3</div><div class="p-bet">$50 buy-in</div></div></div>
+      <div class="card-setup">
+        <div class="setup-row"><input type="text" id="nameIn2" placeholder="Name"><input type="text" id="predIn2" placeholder="Your volume call ($)"></div>
+        <button class="lock-btn" onclick="lockPlayer(2)">LOCK IT IN</button>
+      </div>
+      <div class="card-live">
+        <div class="prediction-val" id="pred2">--</div>
+        <div class="momentum" id="mom2"></div>
+        <div class="dist-bar-wrap"><div class="dist-bar" id="bar2" style="width:0%"></div></div>
+        <div class="dist-text"><span id="dist2">--</span><span class="dist-rank" id="rank2">--</span></div>
+        <button class="taunt-btn" id="taunt2" onclick="sendTaunt(2)">SEND TAUNT (3)</button>
+      </div>
+    </div>
+    <div class="player-card p4" id="card3">
+      <span class="p-rank">CLOSEST</span>
+      <div class="p-header"><div class="p-avatar">4</div><div><div class="p-name" id="name3">Player 4</div><div class="p-bet">$50 buy-in</div></div></div>
+      <div class="card-setup">
+        <div class="setup-row"><input type="text" id="nameIn3" placeholder="Name"><input type="text" id="predIn3" placeholder="Your volume call ($)"></div>
+        <button class="lock-btn" onclick="lockPlayer(3)">LOCK IT IN</button>
+      </div>
+      <div class="card-live">
+        <div class="prediction-val" id="pred3">--</div>
+        <div class="momentum" id="mom3"></div>
+        <div class="dist-bar-wrap"><div class="dist-bar" id="bar3" style="width:0%"></div></div>
+        <div class="dist-text"><span id="dist3">--</span><span class="dist-rank" id="rank3">--</span></div>
+        <button class="taunt-btn" id="taunt3" onclick="sendTaunt(3)">SEND TAUNT (3)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDE BETS -->
+  <div class="sidebets" id="sidebets">
+    <div class="sb-title">side bets</div>
+    <div id="sbItems"></div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="leaderboard" id="leaderboard">
+    <div class="lb-title">live standings</div>
+    <div id="lbRows"></div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-section" id="statsSection">
+    <div class="stats-title">battle stats</div>
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-val" id="statLeadChanges">0</div><div class="stat-label">lead changes</div></div>
+      <div class="stat-box"><div class="stat-val" id="statClosest">--</div><div class="stat-label">closest gap</div></div>
+      <div class="stat-box"><div class="stat-val" id="statBigSwing">--</div><div class="stat-label">biggest swing</div></div>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="log-section">
+    <div class="log-title">live feed</div>
+    <div class="log-entries" id="logEntries"></div>
+  </div>
+  <div class="reset-wrap"><button class="reset-btn" onclick="resetAll()">RESET BET</button></div>
+</div>
+
+<!-- WINNER -->
+<div class="winner-overlay" id="winnerOverlay">
+  <div class="crown">&#x1F451;</div>
+  <div class="winner-label">the juari is</div>
+  <div class="winner-name" id="winnerName">--</div>
+  <div class="winner-pred" id="winnerPred">--</div>
+  <div class="winner-amount">TAKES HOME $200</div>
+  <div class="winner-stats" id="winnerStats"></div>
+  <div class="winner-btns">
+    <button class="winner-btn" onclick="closeWinner()">CLOSE</button>
+    <button class="winner-btn share" onclick="generateShareCard()">SHARE RESULTS</button>
+  </div>
+</div>
+
+<script>
+const DEADLINE = new Date('2026-04-08T13:30:00Z');
+const POT = 200, N = 4;
+const COLORS = ['#00f0ff','#ff2255','#00ff88','#ff9900'];
+
+const HYPE_MSGS = [
+  "money talks, predictions walk","who's about to lose $50?","the volume doesn't lie",
+  "no cap, no cope, just numbers","$200 pot... someone's eating good tonight",
+  "trust your gut or trust the chart?","locks are in, no turning back",
+  "last place buys dinner too","paper hands pick small numbers","diamond calls only",
+  "the clock is ticking...","someone's prediction is looking real spicy",
+  "sweat mode: activated","one number to rule them all","volume go brrr",
+  "imagine being in 4th place rn","this is anyone's game",
+];
+const LOCK_MSGS = [
+  "just dropped their number. bold.","locked in. no fear.","has entered the arena.",
+  "says they did the research.","confident or delusional? we'll see.",
+  "threw down their $50 like it's nothing.","thinks they're built different.",
+];
+const LEAD_MSGS = [
+  "takes the lead! pressure's on.","is cooking right now.",
+  "just snatched first place.","is the new frontrunner.","surges to #1!",
+];
+const TAUNTS = [
+  "enjoy the view from last place","my grandma picks better numbers",
+  "that prediction aged like milk","copium levels off the charts over there",
+  "down bad and it shows","bold prediction for someone about to lose $50",
+  "the volume is running AWAY from you","cope harder","not even close lmao",
+  "you really thought huh","that's a charitable donation at this point",
+  "volume said nah to your prediction","pack it up",
+];
+const DRAMA_MSGS = [
+  "FINAL MINUTES. THIS IS IT.","THE PRESSURE IS ON.","NO TURNING BACK NOW.",
+  "EVERY TICK COUNTS.","WHO WANTS IT MORE?","ENDGAME.",
+];
+
+const S = {
+  players: Array.from({length:N}, ()=>({name:'',prediction:0,locked:false})),
+  liveVolume:0, prevVolume:0, ended:false, winner:null,
+  lastLeader:-1, leadChanges:0, volumeHistory:[],
+  tauntsLeft:[3,3,3,3], leadTime:[0,0,0,0], leadTimeStart:null,
+  closestGap:Infinity, biggestSwing:0, dramaMode:false,
+  sideBets:[], sideBetVotes:{},
+};
+
+// AUDIO
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function initAudio() { if(!audioCtx) audioCtx = new AudioCtx(); }
+function playTone(freq, dur, type='square', vol=.08) {
+  if(!audioCtx) return;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(vol, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime + dur);
+}
+function sfxLock() { playTone(800,.08,'square',.1); setTimeout(()=>playTone(1200,.12,'square',.08),80); }
+function sfxLeadChange() { playTone(600,.06); setTimeout(()=>playTone(900,.06),60); setTimeout(()=>playTone(1200,.1),120); }
+function sfxTaunt() { playTone(300,.1,'sawtooth',.06); setTimeout(()=>playTone(200,.15,'sawtooth',.04),100); }
+function sfxTick() { playTone(1000,.03,'sine',.04); }
+function sfxWinner() {
+  [523,659,784,1047].forEach((f,i) => setTimeout(()=>playTone(f,.3,'sine',.1), i*150));
+}
+
+function $(id){return document.getElementById(id)}
+function fmtMoney(n){if(n>=1e9)return '$'+(n/1e9).toFixed(2)+'B';if(n>=1e6)return '$'+(n/1e6).toFixed(2)+'M';if(n>=1e3)return '$'+(n/1e3).toFixed(1)+'K';return '$'+Math.round(n).toLocaleString()}
+function parseMoney(str){str=str.replace(/[$,\s]/g,'').toUpperCase();let m=1;if(str.endsWith('B')){m=1e9;str=str.slice(0,-1)}else if(str.endsWith('M')){m=1e6;str=str.slice(0,-1)}else if(str.endsWith('K')){m=1e3;str=str.slice(0,-1)}const n=parseFloat(str);return isNaN(n)?null:n*m}
+function timeStr(){return new Date().toLocaleTimeString('en-US',{hour12:false})}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+function addLog(msg,cls){
+  const el=$('logEntries'),d=document.createElement('div');
+  d.className='log-entry'+(cls?' '+cls:'');
+  d.innerHTML=`<span class="time">${timeStr()}</span>${msg}`;
+  el.prepend(d);
+}
+
+function showToast(from,msg,color){
+  const c=$('toasts'),t=document.createElement('div');
+  t.className='toast';
+  t.innerHTML=`<div class="toast-from" style="color:${color}">${esc(from)}</div><div>${msg}</div>`;
+  c.appendChild(t);
+  setTimeout(()=>t.remove(),3500);
+}
+
+// HYPE
+let hypeIdx=0;
+function cycleHype(){
+  const allLocked=S.players.every(p=>p.locked);
+  if(!allLocked){const locked=S.players.filter(p=>p.locked).length;$('hypeMsg').textContent=locked===0?'lock in your predictions...':`${locked}/4 locked in... who's next?`}
+  else if(S.dramaMode){$('hypeMsg').textContent=pick(DRAMA_MSGS)}
+  else{$('hypeMsg').textContent=HYPE_MSGS[hypeIdx%HYPE_MSGS.length];hypeIdx++}
+}
+setInterval(cycleHype,4000);
+
+// TAUNTS
+function sendTaunt(i){
+  initAudio();
+  if(S.tauntsLeft[i]<=0)return;
+  S.tauntsLeft[i]--;
+  const btn=$('taunt'+i);
+  btn.textContent=S.tauntsLeft[i]>0?`SEND TAUNT (${S.tauntsLeft[i]})`:'NO TAUNTS LEFT';
+  if(S.tauntsLeft[i]<=0) btn.classList.add('used');
+  const taunt=pick(TAUNTS);
+  const name=S.players[i].name;
+  showToast(name,taunt,COLORS[i]);
+  addLog(`<b>${name}</b>: "${taunt}"`, 'taunt');
+  sfxTaunt();
+  saveState();
+}
+
+// LOCK
+function lockPlayer(i){
+  initAudio();
+  const nameVal=esc($('nameIn'+i).value.trim())||('Player '+(i+1));
+  const predVal=parseMoney($('predIn'+i).value);
+  if(predVal===null||predVal<=0){
+    $('predIn'+i).style.borderColor='var(--red)';$('predIn'+i).style.boxShadow='0 0 15px rgba(255,34,85,.2)';
+    $('card'+i).classList.add('shake');
+    setTimeout(()=>{$('predIn'+i).style.borderColor='';$('predIn'+i).style.boxShadow='';$('card'+i).classList.remove('shake')},600);
+    return;
+  }
+  S.players[i]={name:nameVal,prediction:predVal,locked:true};
+  $('name'+i).textContent=nameVal;$('pred'+i).textContent=fmtMoney(predVal);$('card'+i).classList.add('locked');
+  sfxLock();
+  addLog(`<b>${nameVal}</b> ${pick(LOCK_MSGS)} Called <b>${fmtMoney(predVal)}</b>`,'hype');
+
+  const allLocked=S.players.every(p=>p.locked);
+  if(allLocked){
+    $('statusText').textContent='all locked in — tracking live volume';
+    $('leaderboard').classList.add('active');
+    $('chartSection').classList.add('active');
+    $('spreadSection').classList.add('active');
+    $('statsSection').classList.add('active');
+    $('sidebets').classList.add('active');
+    S.leadTimeStart=Date.now();
+    addLog('ALL PLAYERS LOCKED. THE RACE IS ON.','highlight');
+    generateSideBets();
+  }
+  saveState();
+}
+
+// SIDE BETS
+function generateSideBets(){
+  const vol=S.liveVolume||60_000_000;
+  const milestones=[
+    {q:`Will volume cross ${fmtMoney(vol*1.3)} before deadline?`,threshold:vol*1.3},
+    {q:`Will there be more than 5 lead changes?`,threshold:5},
+    {q:`Will the winner be off by less than ${fmtMoney(vol*0.05)}?`,threshold:vol*0.05},
+  ];
+  S.sideBets=milestones;
+  renderSideBets();
+}
+function renderSideBets(){
+  $('sbItems').innerHTML=S.sideBets.map((sb,i)=>{
+    const voted=S.sideBetVotes[i];
+    return `<div class="sb-item">
+      <span class="sb-q">${sb.q}</span>
+      <div class="sb-votes">
+        <button class="sb-vote${voted==='yes'?' voted':''}" onclick="voteSideBet(${i},'yes')" ${voted?'disabled':''}>YES</button>
+        <button class="sb-vote${voted==='no'?' voted':''}" onclick="voteSideBet(${i},'no')" ${voted?'disabled':''}>NO</button>
+      </div>
+      <span class="sb-result">${voted?'voted '+voted:''}</span>
+    </div>`;
+  }).join('');
+}
+function voteSideBet(i,v){S.sideBetVotes[i]=v;renderSideBets();saveState()}
+
+// COUNTDOWN
+let lastSecBeep=0;
+function updateCountdown(){
+  const diff=DEADLINE-Date.now();
+  if(diff<=0){$('cdH').textContent='00';$('cdM').textContent='00';$('cdS').textContent='00';if(!S.ended&&S.players.every(p=>p.locked))endBet();return}
+  const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
+  $('cdH').textContent=String(h).padStart(2,'0');$('cdM').textContent=String(m).padStart(2,'0');$('cdS').textContent=String(s).padStart(2,'0');
+  if(h<1)$('cdWrap').classList.add('urgent');else $('cdWrap').classList.remove('urgent');
+
+  // Drama mode - last 10 min
+  const totalSec=diff/1000;
+  if(totalSec<=600&&!S.dramaMode&&S.players.every(p=>p.locked)){
+    S.dramaMode=true;
+    document.body.classList.add('drama');
+    addLog('FINAL 10 MINUTES. DRAMA MODE ACTIVATED.','danger');
+  }
+  // Beep last 10 seconds
+  if(totalSec<=10&&totalSec>0&&Math.floor(totalSec)!==lastSecBeep){
+    lastSecBeep=Math.floor(totalSec);
+    sfxTick();
+  }
+}
+
+// VOLUME
+async function fetchVolume(){
+  // >>> REPLACE WITH YOUR API <<<
+  if(!S.liveVolume)S.liveVolume=50_000_000+Math.random()*50_000_000;
+  const drift=(Math.random()-0.48)*2_000_000;
+  S.liveVolume=Math.max(0,S.liveVolume+drift);
+  return S.liveVolume;
+}
+
+async function updateVolume(){
+  try{
+    S.prevVolume=S.liveVolume;
+    const vol=await fetchVolume();
+    S.liveVolume=vol;
+    const el=$('liveVol');el.textContent=fmtMoney(vol);el.classList.add('bump');setTimeout(()=>el.classList.remove('bump'),200);
+    const dir=$('volDir');
+    if(S.prevVolume){
+      const d=vol-S.prevVolume;
+      const swing=Math.abs(d);
+      if(swing>S.biggestSwing)S.biggestSwing=swing;
+      if(d>0){dir.textContent='▲ '+fmtMoney(swing);dir.className='vol-direction up'}
+      else if(d<0){dir.textContent='▼ '+fmtMoney(swing);dir.className='vol-direction down'}
+      else{dir.textContent='— flat';dir.className='vol-direction'}
+    }
+    $('volSub').textContent='updated '+timeStr();
+    S.volumeHistory.push({t:Date.now(),v:vol});
+    if(S.volumeHistory.length>500)S.volumeHistory=S.volumeHistory.slice(-300);
+    updateDistances();updateLeaderboard();updateSparkline();updateSpread();updateStats();
+  }catch(e){$('volSub').textContent='feed error — retrying...'}
+}
+
+// SPARKLINE
+function updateSparkline(){
+  if(!S.players.every(p=>p.locked)||S.volumeHistory.length<2)return;
+  const canvas=$('sparkline'),ctx=canvas.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.getBoundingClientRect();
+  canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+  ctx.scale(dpr,dpr);
+  const W=rect.width,H=rect.height;
+  const hist=S.volumeHistory.slice(-120);
+  const allVals=[...hist.map(h=>h.v),...S.players.map(p=>p.prediction)];
+  const minV=Math.min(...allVals)*0.98,maxV=Math.max(...allVals)*1.02;
+  const range=maxV-minV||1;
+
+  ctx.clearRect(0,0,W,H);
+
+  // player prediction lines
+  S.players.forEach((p,i)=>{
+    const y=H-(p.prediction-minV)/range*H;
+    ctx.strokeStyle=COLORS[i];ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.globalAlpha=.4;
+    ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+    ctx.setLineDash([]);ctx.globalAlpha=1;
+    ctx.fillStyle=COLORS[i];ctx.font='bold 9px "Space Mono"';
+    ctx.fillText(p.name,4,y-4);
+  });
+
+  // volume line
+  ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.globalAlpha=1;ctx.setLineDash([]);
+  ctx.beginPath();
+  hist.forEach((h,idx)=>{
+    const x=(idx/(hist.length-1))*W;
+    const y=H-(h.v-minV)/range*H;
+    idx===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  // glow
+  ctx.strokeStyle='rgba(0,240,255,.3)';ctx.lineWidth=6;ctx.filter='blur(4px)';
+  ctx.beginPath();
+  hist.forEach((h,idx)=>{
+    const x=(idx/(hist.length-1))*W;const y=H-(h.v-minV)/range*H;
+    idx===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.stroke();ctx.filter='none';
+
+  // gradient fill
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'rgba(0,240,255,.08)');grad.addColorStop(1,'rgba(0,240,255,0)');
+  ctx.fillStyle=grad;ctx.beginPath();
+  hist.forEach((h,idx)=>{const x=(idx/(hist.length-1))*W;const y=H-(h.v-minV)/range*H;idx===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
+  ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();
+}
+
+// SPREAD
+function updateSpread(){
+  if(!S.players.every(p=>p.locked))return;
+  const vol=S.liveVolume;
+  const allVals=[...S.players.map(p=>p.prediction),vol];
+  const minV=Math.min(...allVals),maxV=Math.max(...allVals);
+  const range=maxV-minV||1;const pad=.05;
+
+  S.players.forEach((p,i)=>{
+    const pct=((p.prediction-minV)/range)*(1-pad*2)+pad;
+    $('sm'+i).style.left=(pct*100)+'%';
+    $('sl'+i).textContent=p.name;
+  });
+  const volPct=((vol-minV)/range)*(1-pad*2)+pad;
+  $('spreadVol').style.left=(volPct*100)+'%';
+  $('spreadVolLabel').textContent='VOL '+fmtMoney(vol);
+}
+
+// DISTANCES
+function updateDistances(){
+  if(!S.players.every(p=>p.locked))return;
+  const vol=S.liveVolume;
+  const dists=S.players.map(p=>Math.abs(p.prediction-vol));
+  const maxDist=Math.max(...dists)||1;
+  const ranked=dists.map((d,i)=>({i,d})).sort((a,b)=>a.d-b.d);
+  const ranks=Array(N);ranked.forEach((r,pos)=>ranks[r.i]=pos);
+  const leader=ranked[0].i;
+  const gap=ranked[0].d;
+  if(gap<S.closestGap)S.closestGap=gap;
+
+  // momentum
+  if(S.prevVolume&&S.prevVolume!==vol){
+    S.players.forEach((p,i)=>{
+      const prevDist=Math.abs(p.prediction-S.prevVolume);
+      const curDist=dists[i];
+      const mom=$('mom'+i);
+      if(curDist<prevDist){mom.textContent='▲ moving TOWARD you';mom.className='momentum toward'}
+      else if(curDist>prevDist){mom.textContent='▼ moving AWAY';mom.className='momentum away'}
+      else{mom.textContent='— holding';mom.className='momentum flat'}
+    });
+  }
+
+  // lead change
+  if(S.lastLeader!==-1&&leader!==S.lastLeader){
+    S.leadChanges++;
+    $('leadFlash').classList.remove('fire');void $('leadFlash').offsetWidth;$('leadFlash').classList.add('fire');
+    addLog(`${S.players[leader].name} ${pick(LEAD_MSGS)}`,'highlight');
+    sfxLeadChange();
+    // update lead time for previous leader
+    if(S.leadTimeStart) S.leadTime[S.lastLeader]+=(Date.now()-S.leadTimeStart);
+    S.leadTimeStart=Date.now();
+  }
+  S.lastLeader=leader;
+
+  S.players.forEach((p,i)=>{
+    const pct=Math.max(3,100-(dists[i]/maxDist)*95);
+    $('bar'+i).style.width=pct+'%';
+    $('dist'+i).textContent=fmtMoney(dists[i])+' away';
+    const rk=$('rank'+i),pos=ranks[i]+1;
+    rk.textContent='#'+pos;rk.className='dist-rank r'+pos;
+    const card=$('card'+i);
+    if(i===leader)card.classList.add('leader');else card.classList.remove('leader');
+  });
+}
+
+// LEADERBOARD
+function updateLeaderboard(){
+  if(!S.players.every(p=>p.locked))return;
+  const vol=S.liveVolume;
+  const sorted=S.players.map((p,i)=>({name:p.name,dist:Math.abs(p.prediction-vol),pred:p.prediction,i})).sort((a,b)=>a.dist-b.dist);
+  const emojis=['&#x1F525;','&#x1F4AA;','&#x1F62C;','&#x1F480;'];
+  // calc lead time strings
+  const now=Date.now();
+  const ltCopy=[...S.leadTime];
+  if(S.leadTimeStart&&S.lastLeader>=0) ltCopy[S.lastLeader]+=(now-S.leadTimeStart);
+
+  $('lbRows').innerHTML=sorted.map((p,pos)=>{
+    const lt=ltCopy[p.i];
+    const ltMin=Math.floor(lt/60000);const ltSec=Math.floor((lt%60000)/1000);
+    const ltStr=ltMin>0?`${ltMin}m ${ltSec}s lead`:`${ltSec}s lead`;
+    return `<div class="lb-row">
+      <span class="lb-pos ${pos===0?'g':''}">${pos+1}</span>
+      <span class="lb-name" style="color:${COLORS[p.i]}">${p.name}</span>
+      <span class="lb-streak">${lt>0?ltStr:''}</span>
+      <span class="lb-dist">${fmtMoney(p.dist)} away</span>
+      <span class="lb-emoji">${emojis[pos]}</span>
+    </div>`}).join('');
+}
+
+// STATS
+function updateStats(){
+  $('statLeadChanges').textContent=S.leadChanges;
+  $('statClosest').textContent=S.closestGap<Infinity?fmtMoney(S.closestGap):'--';
+  $('statBigSwing').textContent=S.biggestSwing>0?fmtMoney(S.biggestSwing):'--';
+}
+
+// END
+function endBet(){
+  S.ended=true;
+  const vol=S.liveVolume;
+  const dists=S.players.map(p=>Math.abs(p.prediction-vol));
+  const winIdx=dists.indexOf(Math.min(...dists));
+  S.winner=winIdx;
+  // finalize lead time
+  if(S.leadTimeStart&&S.lastLeader>=0) S.leadTime[S.lastLeader]+=(Date.now()-S.leadTimeStart);
+
+  $('statusText').textContent='GAME OVER';
+  $('winnerName').textContent=S.players[winIdx].name;
+  $('winnerPred').textContent=`called ${fmtMoney(S.players[winIdx].prediction)} — off by ${fmtMoney(dists[winIdx])}`;
+
+  // stats summary
+  const sorted=S.players.map((p,i)=>({name:p.name,dist:dists[i],pred:p.prediction,i})).sort((a,b)=>a.dist-b.dist);
+  let statsHtml=`Final Volume: ${fmtMoney(vol)}<br>`;
+  sorted.forEach((p,pos)=>{statsHtml+=`#${pos+1} ${p.name}: ${fmtMoney(p.pred)} (${fmtMoney(p.dist)} off)<br>`});
+  statsHtml+=`<br>${S.leadChanges} lead changes`;
+  $('winnerStats').innerHTML=statsHtml;
+
+  $('winnerOverlay').classList.add('show');
+  addLog(`GAME OVER. Final volume: <b>${fmtMoney(vol)}</b>`,'highlight');
+  addLog(`${S.players[winIdx].name} IS THE JUARI. Takes $${POT}.`,'highlight');
+  sfxWinner();launchConfetti();saveState();
+}
+
+function closeWinner(){$('winnerOverlay').classList.remove('show')}
+
+// SHARE CARD
+function generateShareCard(){
+  const canvas=$('shareCanvas'),ctx=canvas.getContext('2d');
+  canvas.width=600;canvas.height=400;canvas.style.display='block';
+  // bg
+  ctx.fillStyle='#06060c';ctx.fillRect(0,0,600,400);
+  // border
+  const grd=ctx.createLinearGradient(0,0,600,400);
+  grd.addColorStop(0,'#ffd700');grd.addColorStop(.5,'#ff8c00');grd.addColorStop(1,'#ff2255');
+  ctx.strokeStyle=grd;ctx.lineWidth=3;ctx.strokeRect(8,8,584,384);
+  // title
+  ctx.fillStyle='#ffd700';ctx.font='bold 36px "Archivo Black",sans-serif';ctx.textAlign='center';
+  ctx.fillText('JUARI',300,55);
+  ctx.fillStyle='#555';ctx.font='12px "Space Mono",monospace';ctx.fillText('POLYMARKET VOLUME PREDICTION',300,75);
+  // winner
+  ctx.fillStyle='#ffd700';ctx.font='bold 14px "Space Mono",monospace';ctx.fillText('WINNER',300,110);
+  ctx.fillStyle='#fff';ctx.font='bold 28px "Archivo Black",sans-serif';
+  ctx.fillText(S.players[S.winner].name.toUpperCase(),300,145);
+  ctx.fillStyle='#ffd700';ctx.font='bold 20px "Archivo Black",sans-serif';ctx.fillText('TAKES $200',300,175);
+  // results
+  const vol=S.liveVolume;
+  ctx.fillStyle='#888';ctx.font='11px "Space Mono",monospace';ctx.fillText(`Final Volume: ${fmtMoney(vol)}`,300,205);
+  const dists=S.players.map(p=>Math.abs(p.prediction-vol));
+  const sorted=S.players.map((p,i)=>({name:p.name,dist:dists[i],pred:p.prediction,i})).sort((a,b)=>a.dist-b.dist);
+  sorted.forEach((p,pos)=>{
+    const y=235+pos*35;
+    ctx.fillStyle=COLORS[p.i];ctx.font='bold 13px "Space Mono",monospace';ctx.textAlign='left';
+    ctx.fillText(`#${pos+1}  ${p.name}`,60,y);
+    ctx.fillStyle='#888';ctx.textAlign='right';
+    ctx.fillText(`${fmtMoney(p.pred)}  (${fmtMoney(p.dist)} off)`,540,y);
+  });
+  ctx.textAlign='center';ctx.fillStyle='#333';ctx.font='10px "Space Mono",monospace';
+  ctx.fillText(`${S.leadChanges} lead changes  |  Apr 8, 2026`,300,385);
+
+  // download
+  canvas.toBlob(blob=>{
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='juari-results.png';
+    a.click();URL.revokeObjectURL(url);
+    canvas.style.display='none';
+    showToast('JUARI','Results card downloaded!','var(--gold)');
+  });
+}
+
+// CONFETTI
+function launchConfetti(){
+  const canvas=$('confetti'),ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  const pieces=Array.from({length:250},()=>({x:Math.random()*canvas.width,y:-20-Math.random()*canvas.height,w:Math.random()*12+4,h:Math.random()*8+2,color:['#ffd700','#00f0ff','#ff2255','#00ff88','#ff9900','#a855f7','#ff3388'][Math.floor(Math.random()*7)],vy:Math.random()*4+2,vx:(Math.random()-.5)*5,rot:Math.random()*360,vr:(Math.random()-.5)*12}));
+  let frame=0;
+  function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);pieces.forEach(p=>{ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);ctx.fillStyle=p.color;ctx.globalAlpha=Math.max(0,1-frame/300);ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();p.y+=p.vy;p.x+=p.vx;p.rot+=p.vr;p.vy+=.06});frame++;if(frame<350)requestAnimationFrame(draw);else ctx.clearRect(0,0,canvas.width,canvas.height)}
+  draw();
+}
+
+// PERSISTENCE
+function saveState(){
+  localStorage.setItem('juari',JSON.stringify({
+    players:S.players,ended:S.ended,winner:S.winner,
+    lastLeader:S.lastLeader,leadChanges:S.leadChanges,
+    tauntsLeft:S.tauntsLeft,leadTime:S.leadTime,
+    closestGap:S.closestGap,biggestSwing:S.biggestSwing,
+    sideBetVotes:S.sideBetVotes,
+  }));
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem('juari');if(!raw)return;
+    const sv=JSON.parse(raw);
+    if(sv.players){sv.players.forEach((p,i)=>{if(p.locked){S.players[i]=p;$('name'+i).textContent=p.name;$('pred'+i).textContent=fmtMoney(p.prediction);$('card'+i).classList.add('locked')}});
+      if(sv.players.every(p=>p.locked)){$('leaderboard').classList.add('active');$('chartSection').classList.add('active');$('spreadSection').classList.add('active');$('statsSection').classList.add('active');$('sidebets').classList.add('active');$('statusText').textContent='all locked in — tracking live volume';S.leadTimeStart=Date.now()}}
+    if(sv.lastLeader!==undefined)S.lastLeader=sv.lastLeader;
+    if(sv.leadChanges)S.leadChanges=sv.leadChanges;
+    if(sv.tauntsLeft){S.tauntsLeft=sv.tauntsLeft;S.tauntsLeft.forEach((t,i)=>{$('taunt'+i).textContent=t>0?`SEND TAUNT (${t})`:'NO TAUNTS LEFT';if(t<=0)$('taunt'+i).classList.add('used')})}
+    if(sv.leadTime)S.leadTime=sv.leadTime;
+    if(sv.closestGap!==undefined)S.closestGap=sv.closestGap;
+    if(sv.biggestSwing)S.biggestSwing=sv.biggestSwing;
+    if(sv.sideBetVotes)S.sideBetVotes=sv.sideBetVotes;
+    if(sv.ended&&sv.winner!==null){S.ended=true;S.winner=sv.winner;$('statusText').textContent='GAME OVER'}
+  }catch(e){}
+}
+function resetAll(){if(!confirm('Reset the entire bet? This clears everything.'))return;localStorage.removeItem('juari');location.reload()}
+
+// INIT
+loadState();
+updateCountdown();updateVolume();
+setInterval(updateCountdown,1000);
+setInterval(()=>{updateVolume()},S.dramaMode?2000:5000);
+// speed up in drama mode
+setInterval(()=>{if(S.dramaMode&&!S.ended)updateVolume()},2000);
+
+addLog('JUARI initialized. $200 on the line.','hype');
+addLog('Deadline: Apr 8, 2026 — 7:00 PM IST','');
+
+// click to init audio
+document.addEventListener('click',()=>initAudio(),{once:true});
+</script>
+</body>
+</html>
