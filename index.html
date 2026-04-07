@@ -408,7 +408,12 @@ const DRAMA_MSGS = [
 ];
 
 const S = {
-  players: Array.from({length:N}, ()=>({name:'',prediction:0,locked:false})),
+  players: [
+    {name:'Poorv',prediction:2500,locked:true},
+    {name:'Sabr',prediction:5000,locked:true},
+    {name:'Shreyash',prediction:4000,locked:true},
+    {name:'Arjun',prediction:2000,locked:true},
+  ],
   liveVolume:0, prevVolume:0, ended:false, winner:null,
   lastLeader:-1, leadChanges:0, volumeHistory:[],
   tauntsLeft:[3,3,3,3], leadTime:[0,0,0,0], leadTimeStart:null,
@@ -857,15 +862,33 @@ function loadState(){
 }
 function resetAll(){if(!confirm('Reset the entire bet? This clears everything.'))return;localStorage.removeItem('juari');location.reload()}
 
+// PRE-LOCK PLAYERS
+function initPlayers(){
+  S.players.forEach((p,i)=>{
+    $('name'+i).textContent=p.name;
+    $('pred'+i).textContent=fmtMoney(p.prediction);
+    $('card'+i).classList.add('locked');
+  });
+  $('leaderboard').classList.add('active');
+  $('chartSection').classList.add('active');
+  $('spreadSection').classList.add('active');
+  $('statsSection').classList.add('active');
+  $('sidebets').classList.add('active');
+  $('statusText').textContent='all locked in — tracking live volume';
+  S.leadTimeStart=Date.now();
+  generateSideBets();
+}
+
 // INIT
+initPlayers();
 loadState();
 updateCountdown();updateVolume();
 setInterval(updateCountdown,1000);
 setInterval(()=>{updateVolume()},S.dramaMode?2000:5000);
-// speed up in drama mode
 setInterval(()=>{if(S.dramaMode&&!S.ended)updateVolume()},2000);
 
 addLog('JUARI initialized. $200 on the line.','hype');
+addLog('Poorv: $2.5K | Sabr: $5K | Shreyash: $4K | Arjun: $2K','hype');
 addLog('Deadline: Apr 8, 2026 — 7:00 PM IST','');
 
 // click to init audio
