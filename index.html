@@ -129,6 +129,10 @@
   .taunt-btn{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--dim);font-size:.6rem;cursor:pointer;font-family:'Space Mono',monospace;transition:all .2s}
   .taunt-btn:hover{border-color:var(--pink);color:var(--pink)}
   .taunt-btn.used{opacity:.3;pointer-events:none}
+  .taunt-targets{display:none;gap:6px;margin-top:6px;flex-wrap:wrap}
+  .taunt-targets.open{display:flex}
+  .taunt-target{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--dim);font-size:.6rem;cursor:pointer;font-family:'Space Mono',monospace;transition:all .2s;flex:1;text-align:center}
+  .taunt-target:hover{border-color:var(--pink);color:var(--pink);background:rgba(255,51,136,.08)}
 
   /* LEAD FLASH */
   .lead-flash{position:fixed;inset:0;z-index:100;pointer-events:none;opacity:0;transition:opacity .15s}
@@ -304,7 +308,8 @@
         <div class="momentum" id="mom0"></div>
         <div class="dist-bar-wrap"><div class="dist-bar" id="bar0" style="width:0%"></div></div>
         <div class="dist-text"><span id="dist0">--</span><span class="dist-rank" id="rank0">--</span></div>
-        <button class="taunt-btn" id="taunt0" onclick="sendTaunt(0)">SEND TAUNT (3)</button>
+        <button class="taunt-btn" id="taunt0" onclick="toggleTauntTargets(0)">SEND TAUNT</button>
+        <div class="taunt-targets" id="targets0"></div>
       </div>
     </div>
     <div class="player-card p2" id="card1">
@@ -319,7 +324,8 @@
         <div class="momentum" id="mom1"></div>
         <div class="dist-bar-wrap"><div class="dist-bar" id="bar1" style="width:0%"></div></div>
         <div class="dist-text"><span id="dist1">--</span><span class="dist-rank" id="rank1">--</span></div>
-        <button class="taunt-btn" id="taunt1" onclick="sendTaunt(1)">SEND TAUNT (3)</button>
+        <button class="taunt-btn" id="taunt1" onclick="toggleTauntTargets(1)">SEND TAUNT</button>
+        <div class="taunt-targets" id="targets1"></div>
       </div>
     </div>
     <div class="player-card p3" id="card2">
@@ -334,7 +340,8 @@
         <div class="momentum" id="mom2"></div>
         <div class="dist-bar-wrap"><div class="dist-bar" id="bar2" style="width:0%"></div></div>
         <div class="dist-text"><span id="dist2">--</span><span class="dist-rank" id="rank2">--</span></div>
-        <button class="taunt-btn" id="taunt2" onclick="sendTaunt(2)">SEND TAUNT (3)</button>
+        <button class="taunt-btn" id="taunt2" onclick="toggleTauntTargets(2)">SEND TAUNT</button>
+        <div class="taunt-targets" id="targets2"></div>
       </div>
     </div>
     <div class="player-card p4" id="card3">
@@ -349,7 +356,8 @@
         <div class="momentum" id="mom3"></div>
         <div class="dist-bar-wrap"><div class="dist-bar" id="bar3" style="width:0%"></div></div>
         <div class="dist-text"><span id="dist3">--</span><span class="dist-rank" id="rank3">--</span></div>
-        <button class="taunt-btn" id="taunt3" onclick="sendTaunt(3)">SEND TAUNT (3)</button>
+        <button class="taunt-btn" id="taunt3" onclick="toggleTauntTargets(3)">SEND TAUNT</button>
+        <div class="taunt-targets" id="targets3"></div>
       </div>
     </div>
   </div>
@@ -943,37 +951,52 @@ const channel = supa.channel('juari-room', {
 
 // Listen for taunts from others
 channel.on('broadcast', { event: 'taunt' }, ({ payload }) => {
-  const { playerIdx, name, taunt, color } = payload;
-  showToast(name, taunt, color);
-  addLog(`<b>${esc(name)}</b>: "${esc(taunt)}"`, 'taunt');
+  const { from, to, taunt, color } = payload;
+  showToast(from + ' → ' + to, taunt, color);
+  addLog(`<b>${esc(from)}</b> → <b>${esc(to)}</b>: "${esc(taunt)}"`, 'taunt');
   sfxTaunt();
 });
 
 channel.subscribe();
 
-// Override sendTaunt to broadcast
-const _origSendTaunt = sendTaunt;
-sendTaunt = function(i) {
+// TAUNT TARGET PICKER
+function toggleTauntTargets(fromIdx) {
+  const el = $('targets' + fromIdx);
+  if (el.classList.contains('open')) { el.classList.remove('open'); return; }
+  // close all others
+  for(let i=0;i<N;i++) $('targets'+i).classList.remove('open');
+  // build target buttons (everyone except self)
+  el.innerHTML = S.players.filter((_,i) => i !== fromIdx).map((_,idx) => {
+    const targetIdx = idx >= fromIdx ? idx + 1 : idx;
+    return `<button class="taunt-target" onclick="fireTaunt(${fromIdx},${targetIdx})">@ ${S.players[targetIdx].name}</button>`;
+  }).join('');
+  el.classList.add('open');
+}
+
+function fireTaunt(fromIdx, targetIdx) {
   initAudio();
-  if(S.tauntsLeft[i]<=0) return;
-  S.tauntsLeft[i]--;
-  const btn=$('taunt'+i);
-  btn.textContent=S.tauntsLeft[i]>0?`SEND TAUNT (${S.tauntsLeft[i]})`:'NO TAUNTS LEFT';
-  if(S.tauntsLeft[i]<=0) btn.classList.add('used');
-  const taunt=pick(TAUNTS);
-  const name=S.players[i].name;
+  const taunt = pick(TAUNTS);
+  const from = S.players[fromIdx].name;
+  const to = S.players[targetIdx].name;
+  const msg = `${from} → ${to}: "${taunt}"`;
   // Show locally
-  showToast(name, taunt, COLORS[i]);
-  addLog(`<b>${name}</b>: "${taunt}"`, 'taunt');
+  showToast(from + ' → ' + to, taunt, COLORS[fromIdx]);
+  addLog(`<b>${from}</b> → <b>${to}</b>: "${taunt}"`, 'taunt');
   sfxTaunt();
-  // Broadcast to others
+  // Close targets
+  $('targets' + fromIdx).classList.remove('open');
+  // Broadcast
   channel.send({
     type: 'broadcast',
     event: 'taunt',
-    payload: { playerIdx: i, name, taunt, color: COLORS[i] }
+    payload: { from, to, taunt, color: COLORS[fromIdx] }
   });
-  saveState();
-};
+}
+
+channel.subscribe((status) => {
+  if(status === 'SUBSCRIBED') addLog('REALTIME CONNECTED — taunts are live','hype');
+  else if(status === 'CHANNEL_ERROR') addLog('realtime connection failed','danger');
+});
 </script>
 </body>
 </html>
